@@ -25,9 +25,11 @@ interface DepartmentDetailProps {
   data: ActualData[];
   targets: MedicalTarget[];
   filters: GlobalFilters;
+  // Fix: Add missing theme prop to match component usage in App.tsx
+  theme: 'light' | 'dark';
 }
 
-const DepartmentDetail: React.FC<DepartmentDetailProps> = ({ data, targets, filters }) => {
+const DepartmentDetail: React.FC<DepartmentDetailProps> = ({ data, targets, filters, theme }) => {
   const [showColumnToggle, setShowColumnToggle] = useState(false);
   const [visibleCols, setVisibleCols] = useState({
     date: true,
@@ -59,7 +61,6 @@ const DepartmentDetail: React.FC<DepartmentDetailProps> = ({ data, targets, filt
         actualVal = deptActuals.filter(d => d.admissionType === 'NOI_TRU').length;
       } else if (target.id.includes('BN_NGOAI_TRU')) {
         actualVal = deptActuals.filter(d => d.admissionType === 'NGOAI_TRU').length;
-      // Corrected: Comparison with enum member TargetCategory.DOANH_THU
       } else if (target.category === TargetCategory.DOANH_THU) {
         actualVal = deptActuals.reduce((sum, item) => sum + item.revenue, 0);
       } else {
@@ -203,14 +204,12 @@ const DepartmentDetail: React.FC<DepartmentDetailProps> = ({ data, targets, filt
                 <p className="text-sm font-medium text-slate-500 mb-1 group-hover:text-blue-600 transition-colors">{stat.name}</p>
                 <div className="flex items-baseline space-x-2">
                   <p className="text-3xl font-black text-slate-800">
-                    {/* Corrected: Use TargetCategory.DOANH_THU */}
                     {stat.category === TargetCategory.DOANH_THU 
                       ? (stat.actual / 1000000000).toFixed(2) + ' Tỷ' 
                       : stat.actual.toLocaleString()
                     }
                   </p>
                   <span className="text-xs font-bold text-slate-400">/ {
-                    /* Corrected: Use TargetCategory.DOANH_THU */
                     stat.category === TargetCategory.DOANH_THU 
                       ? (stat.yearlyPlan / 1000000000).toFixed(1) + ' Tỷ' 
                       : stat.yearlyPlan.toLocaleString()

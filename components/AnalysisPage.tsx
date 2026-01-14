@@ -25,9 +25,11 @@ import {
 
 interface AnalysisPageProps {
   data: ActualData[];
+  // Fix: Add missing theme prop to match component usage in App.tsx
+  theme: 'light' | 'dark';
 }
 
-const AnalysisPage: React.FC<AnalysisPageProps> = ({ data }) => {
+const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
   const [selectedICDs, setSelectedICDs] = useState<string[]>([]);
   const [showICDFilter, setShowICDFilter] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,7 +102,7 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data }) => {
     const stats: Record<string, number> = {
       'KHOI': 0,
       'DO': 0,
-      'KHONG_THAY_DOI': 0,
+      'KHONG_THAY_MODI': 0,
       'NANG': 0,
       'TU_VONG': 0,
       'CHUYEN_VIEN': 0

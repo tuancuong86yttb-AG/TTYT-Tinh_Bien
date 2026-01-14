@@ -39,9 +39,11 @@ import { DEPARTMENTS } from '../constants';
 interface SummaryDashboardProps {
   data: ActualData[];
   targets: MedicalTarget[];
+  // Fix: Add missing theme prop to match component usage in App.tsx
+  theme: 'light' | 'dark';
 }
 
-const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ data, targets }) => {
+const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ data, targets, theme }) => {
   const [selectedDoctorName, setSelectedDoctorName] = useState<string | null>(null);
 
   const totalRevenue = useMemo(() => data.reduce((sum, item) => sum + item.revenue, 0), [data]);
