@@ -1,0 +1,8 @@
+{
+  "name": "H-Smart: Medical Management Dashboard",
+  "description": "A comprehensive dashboard for Vietnamese public health centers to monitor professional targets, revenue, department efficiency, and ICD-10 disease patterns.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
