@@ -25,7 +25,6 @@ import {
 
 interface AnalysisPageProps {
   data: ActualData[];
-  // Fix: Add missing theme prop to match component usage in App.tsx
   theme: 'light' | 'dark';
 }
 
@@ -70,8 +69,8 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
         return {
           code,
           name: metadata?.name || code,
-          count,
-          revenue: revenues[code]
+          count: count || 0,
+          revenue: revenues[code] || 0
         };
       })
       .sort((a, b) => b.count - a.count);
@@ -91,18 +90,19 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
     return Object.entries(revenues)
       .map(([name, revenue]) => ({
         name,
-        revenue,
-        count: services[name]
+        revenue: revenue || 0,
+        count: services[name] || 0
       }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 10);
   }, [data]);
 
   const dischargeStats = useMemo(() => {
+    // FIXED: Corrected typo 'KHONG_THAY_MODI' to 'KHONG_THAY_DOI'
     const stats: Record<string, number> = {
       'KHOI': 0,
       'DO': 0,
-      'KHONG_THAY_MODI': 0,
+      'KHONG_THAY_DOI': 0,
       'NANG': 0,
       'TU_VONG': 0,
       'CHUYEN_VIEN': 0
@@ -111,8 +111,10 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
     let totalDischarged = 0;
     data.forEach(item => {
       if (item.isDischarged && item.dischargeStatus) {
-        stats[item.dischargeStatus]++;
-        totalDischarged++;
+        if (stats[item.dischargeStatus] !== undefined) {
+          stats[item.dischargeStatus]++;
+          totalDischarged++;
+        }
       }
     });
 
@@ -126,12 +128,12 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
     ];
 
     return {
-      chartData: statusMap.map(s => ({ name: s.name, value: stats[s.key], color: s.color })),
+      chartData: statusMap.map(s => ({ name: s.name, value: stats[s.key] || 0, color: s.color })),
       total: totalDischarged,
       tableData: statusMap.map(s => ({
         name: s.name,
-        count: stats[s.key],
-        percent: totalDischarged > 0 ? (stats[s.key] / totalDischarged * 100).toFixed(1) : '0',
+        count: stats[s.key] || 0,
+        percent: totalDischarged > 0 ? (((stats[s.key] || 0) / totalDischarged) * 100).toFixed(1) : '0',
         color: s.color
       }))
     };
@@ -153,10 +155,10 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
   return (
     <div className="space-y-8 pb-12">
       {/* ICD Analysis Section */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h3 className="text-lg font-bold text-slate-800">Phân tích Mô hình bệnh tật (ICD-10)</h3>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Phân tích Mô hình bệnh tật (ICD-10)</h3>
             <p className="text-xs text-slate-500 font-medium">Theo dõi cơ cấu bệnh tật và hiệu quả kinh tế theo chẩn đoán</p>
           </div>
           
@@ -166,7 +168,7 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
               className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl border-2 transition-all text-sm font-bold shadow-sm ${
                 selectedICDs.length > 0 
                   ? 'bg-blue-50 border-blue-200 text-blue-700' 
-                  : 'bg-white border-slate-100 text-slate-600 hover:border-slate-200'
+                  : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-200'
               }`}
             >
               <Filter size={16} />
@@ -177,14 +179,14 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
             {showICDFilter && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowICDFilter(false)}></div>
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
-                  <div className="p-4 border-b border-slate-50 bg-slate-50/50">
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 z-50 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
+                  <div className="p-4 border-b border-slate-50 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
                     <div className="relative">
                       <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input 
                         type="text"
                         placeholder="Tìm mã hoặc tên bệnh..."
-                        className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-100"
+                        className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         autoFocus
@@ -192,18 +194,18 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
                     </div>
                   </div>
                   
-                  <div className="max-h-64 overflow-y-auto px-2 py-2">
+                  <div className="max-h-64 overflow-y-auto px-2 py-2 custom-scrollbar">
                     {filteredICDOptions.map((item) => (
                       <button 
                         key={item.code}
                         onClick={() => toggleICD(item.code)}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors hover:bg-slate-50 ${
-                          selectedICDs.includes(item.code) ? 'bg-blue-50/50' : ''
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 ${
+                          selectedICDs.includes(item.code) ? 'bg-blue-50/50 dark:bg-blue-900/30' : ''
                         }`}
                       >
                         <div className="flex flex-col">
-                          <span className="text-xs font-black text-slate-700">{item.code}</span>
-                          <span className="text-[10px] text-slate-500 truncate w-56">{item.name}</span>
+                          <span className="text-xs font-black text-slate-700 dark:text-slate-100">{item.code}</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate w-56">{item.name}</span>
                         </div>
                         {selectedICDs.includes(item.code) && (
                           <div className="bg-blue-600 rounded-full p-0.5">
@@ -217,7 +219,7 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
                     )}
                   </div>
 
-                  <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                  <div className="p-3 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
                     <button 
                       onClick={() => setSelectedICDs([])}
                       className="text-[10px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest transition-colors"
@@ -241,7 +243,7 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
         {selectedICDs.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
             {selectedICDs.map(code => (
-              <span key={code} className="inline-flex items-center space-x-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black border border-blue-200">
+              <span key={code} className="inline-flex items-center space-x-2 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-[10px] font-black border border-blue-200 dark:border-blue-800">
                 <span>{code}</span>
                 <button onClick={() => toggleICD(code)} className="hover:text-red-500 transition-colors">
                   <X size={12} />
@@ -261,12 +263,19 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
             <div className="h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart layout="vertical" data={topICD} margin={{ left: 10, right: 30 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke={theme === 'dark' ? '#334155' : '#f1f5f9'} />
                   <XAxis type="number" fontSize={10} axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontWeight: 600}} />
-                  <YAxis dataKey="code" type="category" fontSize={10} axisLine={false} tickLine={false} width={40} tick={{fill: '#475569', fontWeight: 800}} />
+                  <YAxis dataKey="code" type="category" fontSize={10} axisLine={false} tickLine={false} width={40} tick={{fill: theme === 'dark' ? '#cbd5e1' : '#475569', fontWeight: 800}} />
                   <Tooltip 
-                    cursor={{fill: '#f8fafc'}}
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                    cursor={{fill: theme === 'dark' ? '#1e293b' : '#f8fafc'}}
+                    contentStyle={{ 
+                      borderRadius: '12px', 
+                      border: 'none', 
+                      boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', 
+                      padding: '12px',
+                      backgroundColor: theme === 'dark' ? '#0f172a' : '#fff',
+                      color: theme === 'dark' ? '#f8fafc' : '#000'
+                    }}
                   />
                   <Bar dataKey="count" fill="#3b82f6" radius={[0, 6, 6, 0]} barSize={selectedICDs.length > 5 ? 14 : 24} name="Số ca" />
                 </BarChart>
@@ -283,7 +292,7 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
             <div className="h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart layout="vertical" data={topICD} margin={{ left: 10, right: 30 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke={theme === 'dark' ? '#334155' : '#f1f5f9'} />
                   <XAxis 
                     type="number" 
                     fontSize={10} 
@@ -292,11 +301,18 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
                     tickFormatter={formatCurrency}
                     tick={{fill: '#94a3b8', fontWeight: 600}}
                   />
-                  <YAxis dataKey="code" type="category" fontSize={10} axisLine={false} tickLine={false} width={40} tick={{fill: '#475569', fontWeight: 800}} />
+                  <YAxis dataKey="code" type="category" fontSize={10} axisLine={false} tickLine={false} width={40} tick={{fill: theme === 'dark' ? '#cbd5e1' : '#475569', fontWeight: 800}} />
                   <Tooltip 
-                    cursor={{fill: '#f8fafc'}}
-                    formatter={(value: number) => [new Intl.NumberFormat('vi-VN').format(value) + ' đ', 'Doanh thu']}
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                    cursor={{fill: theme === 'dark' ? '#1e293b' : '#f8fafc'}}
+                    formatter={(value: number) => [new Intl.NumberFormat('vi-VN').format(value || 0) + ' đ', 'Doanh thu']}
+                    contentStyle={{ 
+                      borderRadius: '12px', 
+                      border: 'none', 
+                      boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', 
+                      padding: '12px',
+                      backgroundColor: theme === 'dark' ? '#0f172a' : '#fff',
+                      color: theme === 'dark' ? '#f8fafc' : '#000'
+                    }}
                   />
                   <Bar dataKey="revenue" fill="#10b981" radius={[0, 6, 6, 0]} barSize={selectedICDs.length > 5 ? 14 : 24} name="Doanh thu" />
                 </BarChart>
@@ -305,16 +321,16 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
           </div>
         </div>
         
-        <div className="mt-8 pt-6 border-t border-slate-50">
+        <div className="mt-8 pt-6 border-t border-slate-50 dark:border-slate-800">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {topICD.slice(0, 4).map((icd) => (
-              <div key={icd.code} className="p-4 bg-slate-50/50 rounded-xl border border-slate-100 hover:bg-white hover:shadow-md transition-all group">
+              <div key={icd.code} className="p-4 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md transition-all group">
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-[11px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase tracking-widest">{icd.code}</span>
-                  <span className="text-xs font-black text-slate-800">{icd.count} lượt</span>
+                  <span className="text-[11px] font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded uppercase tracking-widest">{icd.code}</span>
+                  <span className="text-xs font-black text-slate-800 dark:text-slate-100">{(icd.count || 0).toLocaleString()} lượt</span>
                 </div>
-                <p className="text-xs font-semibold text-slate-500 truncate mb-3 group-hover:text-blue-600 transition-colors">{icd.name}</p>
-                <p className="text-sm font-black text-emerald-600">{new Intl.NumberFormat('vi-VN').format(icd.revenue)} đ</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate mb-3 group-hover:text-blue-600 transition-colors">{icd.name}</p>
+                <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">{new Intl.NumberFormat('vi-VN').format(icd.revenue || 0)} đ</p>
               </div>
             ))}
           </div>
@@ -322,13 +338,13 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
       </div>
 
       {/* Doctor Performance Ranking - Enhanced with Bar Chart */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h3 className="text-lg font-bold text-slate-800">Phân tích Hiệu quả Bác sĩ (Top 10)</h3>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Phân tích Hiệu quả Bác sĩ (Top 10)</h3>
             <p className="text-xs text-slate-500 font-medium">Xếp hạng theo tổng doanh thu mang lại cho Trung tâm</p>
           </div>
-          <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600">
+          <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400">
             <UserCheck size={20} />
           </div>
         </div>
@@ -343,7 +359,7 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
             <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart layout="vertical" data={topDoctors} margin={{ left: 10, right: 30 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke={theme === 'dark' ? '#334155' : '#f1f5f9'} />
                   <XAxis 
                     type="number" 
                     fontSize={10} 
@@ -352,11 +368,18 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
                     tickFormatter={formatCurrency}
                     tick={{fill: '#94a3b8', fontWeight: 600}}
                   />
-                  <YAxis dataKey="name" type="category" fontSize={10} axisLine={false} tickLine={false} width={100} tick={{fill: '#475569', fontWeight: 800}} />
+                  <YAxis dataKey="name" type="category" fontSize={10} axisLine={false} tickLine={false} width={100} tick={{fill: theme === 'dark' ? '#cbd5e1' : '#475569', fontWeight: 800}} />
                   <Tooltip 
-                    cursor={{fill: '#f8fafc'}}
-                    formatter={(value: number) => [new Intl.NumberFormat('vi-VN').format(value) + ' đ', 'Doanh thu']}
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                    cursor={{fill: theme === 'dark' ? '#1e293b' : '#f8fafc'}}
+                    formatter={(value: number) => [new Intl.NumberFormat('vi-VN').format(value || 0) + ' đ', 'Doanh thu']}
+                    contentStyle={{ 
+                      borderRadius: '12px', 
+                      border: 'none', 
+                      boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', 
+                      padding: '12px',
+                      backgroundColor: theme === 'dark' ? '#0f172a' : '#fff',
+                      color: theme === 'dark' ? '#f8fafc' : '#000'
+                    }}
                   />
                   <Bar dataKey="revenue" fill="#6366f1" radius={[0, 6, 6, 0]} barSize={20} name="Doanh thu" />
                 </BarChart>
@@ -365,32 +388,32 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
           </div>
 
           {/* Ranking Table for Doctors */}
-          <div className="lg:col-span-5 border-l border-slate-50 pl-0 lg:pl-8">
+          <div className="lg:col-span-5 border-l border-slate-50 dark:border-slate-800 pl-0 lg:pl-8">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                  <tr className="text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
                     <th className="pb-4">Hạng</th>
                     <th className="pb-4">Bác sĩ</th>
                     <th className="pb-4 text-right">Doanh thu</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50">
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                   {topDoctors.map((doc, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/80 transition-colors group">
+                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                       <td className="py-3">
                         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shadow-sm ${
-                          idx < 3 ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-slate-100 text-slate-500 border border-slate-200'
+                          idx < 3 ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
                         }`}>
                           {idx + 1}
                         </div>
                       </td>
                       <td className="py-3">
-                        <p className="text-sm font-black text-slate-700 group-hover:text-blue-600 transition-colors">{doc.name}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{doc.count} lượt chỉ định</p>
+                        <p className="text-sm font-black text-slate-700 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{doc.name}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{(doc.count || 0).toLocaleString()} lượt chỉ định</p>
                       </td>
-                      <td className="py-3 text-sm font-black text-slate-800 text-right">
-                        {new Intl.NumberFormat('vi-VN').format(doc.revenue)} đ
+                      <td className="py-3 text-sm font-black text-slate-800 dark:text-slate-100 text-right">
+                        {new Intl.NumberFormat('vi-VN').format(doc.revenue || 0)} đ
                       </td>
                     </tr>
                   ))}
@@ -403,11 +426,11 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Detailed Treatment Outcome Analysis */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col transition-colors">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-slate-800">Kết quả điều trị</h3>
-            <span className="text-[10px] font-black bg-emerald-50 text-emerald-600 px-2 py-1 rounded border border-emerald-100 uppercase tracking-widest">
-              Tổng: {dischargeStats.total} ca
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Kết quả điều trị</h3>
+            <span className="text-[10px] font-black bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300 px-2 py-1 rounded border border-emerald-100 dark:border-emerald-800 uppercase tracking-widest">
+              Tổng: {(dischargeStats.total || 0).toLocaleString()} ca
             </span>
           </div>
           
@@ -427,42 +450,42 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: theme === 'dark' ? '#1e293b' : '#fff' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
             <div className="w-full md:w-1/2 grid grid-cols-1 gap-2 px-4">
               {dischargeStats.tableData.slice(0, 3).map((item, idx) => (
-                <div key={idx} className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between hover:border-blue-200 transition-colors cursor-default">
+                <div key={idx} className="p-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700 flex items-center justify-between hover:border-blue-200 transition-colors cursor-default">
                   <div className="flex items-center">
                     <div className="w-2.5 h-2.5 rounded-full mr-2 shadow-sm" style={{ backgroundColor: item.color }}></div>
-                    <span className="text-xs font-bold text-slate-600">{item.name}</span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{item.name}</span>
                   </div>
-                  <span className="text-xs font-black text-slate-800">{item.percent}%</span>
+                  <span className="text-xs font-black text-slate-800 dark:text-slate-100">{item.percent}%</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-slate-100">
+          <div className="overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800">
             <table className="w-full text-left">
-              <thead className="bg-slate-50/50">
+              <thead className="bg-slate-50/50 dark:bg-slate-800/50">
                 <tr>
                   <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-wider">Kết quả</th>
                   <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Số lượt</th>
                   <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-wider text-right">Tỷ lệ</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                 {dischargeStats.tableData.map((row, i) => (
-                  <tr key={i} className="hover:bg-slate-50 transition-colors group">
-                    <td className="px-4 py-3 flex items-center text-sm font-semibold text-slate-700">
+                  <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                    <td className="px-4 py-3 flex items-center text-sm font-semibold text-slate-700 dark:text-slate-200">
                       <div className="w-2 h-2 rounded-full mr-2 shadow-sm group-hover:scale-125 transition-transform" style={{ backgroundColor: row.color }}></div>
                       {row.name}
                     </td>
-                    <td className="px-4 py-3 text-sm font-bold text-slate-600 text-right">{row.count.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-sm font-black text-slate-800 text-right">{row.percent}%</td>
+                    <td className="px-4 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 text-right">{(row.count || 0).toLocaleString()}</td>
+                    <td className="px-4 py-3 text-sm font-black text-slate-800 dark:text-slate-100 text-right">{row.percent}%</td>
                   </tr>
                 ))}
               </tbody>
@@ -471,13 +494,13 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
         </div>
 
         {/* Top Services Breakdown */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
            <div className="flex items-center justify-between mb-8">
              <div>
-               <h3 className="text-lg font-bold text-slate-800">Top Dịch vụ kỹ thuật chỉ định cao nhất</h3>
+               <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Top Dịch vụ kỹ thuật chỉ định cao nhất</h3>
                <p className="text-xs text-slate-400 font-medium">Xếp hạng mức độ phổ biến của các dịch vụ trong kỳ</p>
              </div>
-             <div className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-100">Cập nhật 5 phút trước</div>
+             <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-100 dark:border-blue-800">Cập nhật thời gian thực</div>
            </div>
            <div className="space-y-6">
              {[
@@ -489,22 +512,22 @@ const AnalysisPage: React.FC<AnalysisPageProps> = ({ data, theme }) => {
                { name: 'Sinh hóa nước tiểu', value: 210, growth: '+4%', color: 'bg-sky-500' }
              ].map((svc, i) => (
                <div key={i} className="flex items-center space-x-5 group">
-                 <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center font-black text-xs shadow-sm transition-all duration-300">
+                 <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-400 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center font-black text-xs shadow-sm transition-all duration-300">
                    #{i+1}
                  </div>
                  <div className="flex-1">
                    <div className="flex justify-between items-center mb-2">
-                     <span className="text-sm font-black text-slate-700 group-hover:text-slate-900 transition-colors">{svc.name}</span>
-                     <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${svc.growth.startsWith('+') ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                     <span className="text-sm font-black text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{svc.name}</span>
+                     <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${svc.growth.startsWith('+') ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'}`}>
                        {svc.growth}
                      </span>
                    </div>
-                   <div className="w-full bg-slate-100 rounded-full h-1.5 flex overflow-hidden shadow-inner">
+                   <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 flex overflow-hidden shadow-inner">
                      <div className={`${svc.color} h-1.5 rounded-full transition-all duration-1000 group-hover:brightness-110`} style={{ width: `${(svc.value/450)*100}%` }}></div>
                    </div>
                  </div>
                  <div className="text-right">
-                   <p className="text-sm font-black text-slate-800">{svc.value}</p>
+                   <p className="text-sm font-black text-slate-800 dark:text-slate-100">{(svc.value || 0).toLocaleString()}</p>
                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Lượt</p>
                  </div>
                </div>
