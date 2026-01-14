@@ -59,8 +59,8 @@ const DepartmentDetail: React.FC<DepartmentDetailProps> = ({ data, targets, filt
         actualVal = deptActuals.filter(d => d.admissionType === 'NOI_TRU').length;
       } else if (target.id.includes('BN_NGOAI_TRU')) {
         actualVal = deptActuals.filter(d => d.admissionType === 'NGOAI_TRU').length;
-      // Fixed: Comparison with enum member TargetCategory.DOAN_THU instead of string literal to fix TypeScript error on line 62
-      } else if (target.category === TargetCategory.DOAN_THU) {
+      // Corrected: Comparison with enum member TargetCategory.DOANH_THU
+      } else if (target.category === TargetCategory.DOANH_THU) {
         actualVal = deptActuals.reduce((sum, item) => sum + item.revenue, 0);
       } else {
         actualVal = Math.round(target.yearlyPlan * 0.76 + Math.random() * target.yearlyPlan * 0.05);
@@ -203,15 +203,15 @@ const DepartmentDetail: React.FC<DepartmentDetailProps> = ({ data, targets, filt
                 <p className="text-sm font-medium text-slate-500 mb-1 group-hover:text-blue-600 transition-colors">{stat.name}</p>
                 <div className="flex items-baseline space-x-2">
                   <p className="text-3xl font-black text-slate-800">
-                    {/* Fixed: Use enum member TargetCategory.DOAN_THU instead of string literal for type safety */}
-                    {stat.category === TargetCategory.DOAN_THU 
+                    {/* Corrected: Use TargetCategory.DOANH_THU */}
+                    {stat.category === TargetCategory.DOANH_THU 
                       ? (stat.actual / 1000000000).toFixed(2) + ' Tỷ' 
                       : stat.actual.toLocaleString()
                     }
                   </p>
                   <span className="text-xs font-bold text-slate-400">/ {
-                    /* Fixed: Use enum member TargetCategory.DOAN_THU instead of string literal for type safety */
-                    stat.category === TargetCategory.DOAN_THU 
+                    /* Corrected: Use TargetCategory.DOANH_THU */
+                    stat.category === TargetCategory.DOANH_THU 
                       ? (stat.yearlyPlan / 1000000000).toFixed(1) + ' Tỷ' 
                       : stat.yearlyPlan.toLocaleString()
                     } {stat.unit}</span>

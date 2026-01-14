@@ -87,7 +87,7 @@ const workerCode = `
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('summary');
-  const [sheetId, setSheetId] = useState('1Y6z546F1R9x5S4Esv5yhQd9bMT96wuoE');
+  const [sheetId, setSheetId] = useState('17GwkdtLVp5VeHgxxePRqxcid2sZ5QOncge43juUKqzc');
   const [lastSynced, setLastSynced] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'fetching' | 'success' | 'error'>('idle');

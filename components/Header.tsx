@@ -1,17 +1,13 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { 
   RefreshCw, 
   Calendar, 
   FileSpreadsheet, 
   CheckCircle2, 
   Clock,
-  Download,
-  FileText,
-  Table as TableIcon,
   ChevronDown,
   Users,
-  ChevronRight,
   ChevronUp,
   Filter,
   Layers
@@ -40,14 +36,8 @@ const Header: React.FC<HeaderProps> = ({
   syncStatus,
   lastSynced
 }) => {
-  const [showExport, setShowExport] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [isCustomDate, setIsCustomDate] = useState(false);
-
-  const handleExport = (type: 'PDF' | 'EXCEL') => {
-    alert(`Đang chuẩn bị trích xuất dữ liệu định dạng ${type}...`);
-    setShowExport(false);
-  };
 
   const formatDateDisplay = (dateStr: string) => {
     const [y, m, d] = dateStr.split('-');
@@ -289,40 +279,6 @@ const Header: React.FC<HeaderProps> = ({
                 ))}
               </select>
             </div>
-          </div>
-
-          {/* Export Button - Refined Style */}
-          <div className="relative">
-            <button 
-              onClick={() => setShowExport(!showExport)}
-              className="flex items-center space-x-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl font-black text-[13px] hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 active:scale-95"
-            >
-              <Download size={16} />
-              <span>Kết xuất</span>
-              <ChevronDown size={14} className={`transition-transform duration-200 ${showExport ? 'rotate-180' : ''}`} />
-            </button>
-            
-            {showExport && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowExport(false)}></div>
-                <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
-                  <button 
-                    onClick={() => handleExport('PDF')}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-[13px] text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
-                  >
-                    <FileText size={18} className="text-red-500" />
-                    <span className="font-black">Xuất file PDF (.pdf)</span>
-                  </button>
-                  <button 
-                    onClick={() => handleExport('EXCEL')}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-[13px] text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
-                    <TableIcon size={18} className="text-emerald-600" />
-                    <span className="font-black">Xuất file Excel (.xlsx)</span>
-                  </button>
-                </div>
-              </>
-            )}
           </div>
         </div>
       </div>
